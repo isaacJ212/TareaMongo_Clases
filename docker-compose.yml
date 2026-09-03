@@ -1,0 +1,57 @@
+services:
+
+  mongo-db:
+    image: mongo:8
+    container_name: mongo-db
+    restart: always
+
+    ports:
+      - "27017:27017"
+
+    command:
+      - mongod
+      - --replSet
+      - rs0
+      - --bind_ip_all
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+
+    volumes:
+      - mongodb_data:/data/db
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --host localhost:27017 -u admin -p admin123 --authenticationDatabase admin --quiet --eval \"db.adminCommand('ping').ok\""
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+
+    ports:
+      - "8081:8081"
+
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://admin:admin123@mongo-db:27017/?authSource=admin"
+      ME_CONFIG_OPTIONS_EDITORTHEME: "default"
+
+      ME_CONFIG_BASICAUTH: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: "admin"
+      ME_CONFIG_BASICAUTH_PASSWORD: "admin123"
+
+    depends_on:
+      mongo-db:
+        condition: service_healthy
+
+
+volumes:
+  mongodb_data:
