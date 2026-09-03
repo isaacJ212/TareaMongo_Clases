@@ -1,34 +1,23 @@
 const { connectToDatabase } = require('../config/database');
 const { ObjectId } = require('mongodb');
 
-const  new_product=[
-    {
-        Nombre:'caramelo',precio : 5 , categoria:'dulce'
-    },
-    
-    {
-        Nombre:'manzana',precio : 20 , categoria:'fruta'
-    },
-    
-    {
-        Nombre:'zapato',precio : 500 , categoria:'calzado'
-    }
-
+const new_product = [
+    { nombre: 'caramelo', precio: 5, categoria: 'dulce', stock: 100 },
+    { nombre: 'manzana', precio: 20, categoria: 'fruta', stock: 50 },
+    { nombre: 'zapato', precio: 500, categoria: 'calzado', stock: 10 }
 ];
 
-const new_bulk = async(req, res)=> {
-    try{
+const new_bulk = async (req, res) => {
+    try {
         const db = await connectToDatabase();
 
-        const productos = await 
-        db.collection('productos').insertMany(new_product).toArray();
-        res.json(productos);
-    }
-    catch(error){
-        console.error('Error fetching productos:', error);
+        const result = await db.collection('productos').insertMany(new_product);
+        res.json({ insertedCount: result.insertedCount, insertedIds: result.insertedIds });
+    } catch (error) {
+        console.error('Error inserting productos bulk:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-}
+};
 const getProductos = async (req, res) => {
     try {
         //ESPERAMOS CONECTARNOS A MONGODB Y OBTENER LA BASE DE DATOS
@@ -87,7 +76,7 @@ const createProducto = async (req, res) => {
 const createProductos = async (req, res) => {
     try{
         const db = await connectToDatabase();
-        const newProductos = req.body; //[{nombre: 'Producto 1', precio: 100, }, {nombre: 'Producto 2', precio: 200, }]
+        const newProductos = req.body; 
 
         if (!Array.isArray(newProductos) || newProductos.length === 0) {
             return res.status(400).json({ error: 'Invalid input. Expected an array of productos.' });
@@ -109,7 +98,7 @@ const updateProducto = async (req, res) => {
         const db = await connectToDatabase();
         const { id } = req.params;
         
-        //SINTAXIS PARA ACTUALIZAR UN PRODUCTO POR SU ID(MONGO)
+ 
         const result = await 
             db.collection('productos').updateOne(
                 { _id: new ObjectId(id) },
@@ -131,7 +120,7 @@ const deleteProducto = async (req, res) => {
         const db = await connectToDatabase();
         const { id } = req.params;
         
-        //SINTAXIS PARA ELIMINAR UN PRODUCTO POR SU ID(MONGO)
+       
         const result = await 
             db.collection('productos').deleteOne({ _id: new ObjectId(id) });
 
